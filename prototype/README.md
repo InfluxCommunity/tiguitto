@@ -113,7 +113,7 @@ __Mosquitto__:
 | `influxdb`  | 8086  |
 | `telegraf`  | n/a   |
 | `grafana`   | 3000  |
-| `mosquitto` | 1883 |
+| `mosquitto` | 1883  |
 
 ---
 
