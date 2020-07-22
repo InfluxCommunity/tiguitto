@@ -3,7 +3,7 @@ version: "3"
 services:
     influxdb:
         image: influxdb
-        container_name: influxdb-selfsigned
+        container_name: influxdb
         env_file: selfsigned.env
         ports: 
             - "8086:8086"
@@ -15,15 +15,16 @@ services:
 
     mosquitto:
         image: eclipse-mosquitto
-        container_name: mosquitto-selfsigned
+        container_name: mosquitto
         volumes:
-            - ./certs:/mosquitto/config/certs
+            - ./certs/ca.crt:/mosquitto/config/certs/ca.crt
             - ./certs/mqtt:/mosquitto/config/certs
             - ./mosquitto/config/:/mosquitto/config/
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
         user: "1883"
         ports:
+            - "1883:1883"
             - "8883:8883"
         links: 
             - telegraf
@@ -33,7 +34,7 @@ services:
     
     telegraf:
         image: telegraf:1.13
-        container_name: telegraf-selfsigned
+        container_name: telegraf
         links: 
             - influxdb
         env_file: selfsigned.env
