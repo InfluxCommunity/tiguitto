@@ -90,8 +90,14 @@ if [ "$UID" -ne "$ROOT_UID" ]; then
 	exit $E_NOTROOT
 fi
 
+mkdir $CERTSDIR/influxdb
+mkdir $CERTSDIR/mqtt
+
 cd $CERTSDIR
 generate_CA
 generate_mqtt_server_cert
-generate_influxdb_server_cert
 generate_mqtt_client_cert
+generate_influxdb_server_cert
+
+mv mqtt-* mqtt/
+mv influxdb-* influxdb/
