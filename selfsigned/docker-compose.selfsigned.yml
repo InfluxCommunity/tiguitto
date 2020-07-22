@@ -3,27 +3,28 @@ version: "3"
 services:
     influxdb:
         image: influxdb
-        container_name: influxdb
+        container_name: influxdb-selfsigned
         env_file: selfsigned.env
         ports: 
             - "8086:8086"
         volumes:
-            - ./certs:/etc/ssl/influxdb 
+            - ./certs/influxdb:/etc/ssl/influxdb 
             - ./influxdb:/var/lib/influxdb
         networks: 
             - "iotstack"
 
     mosquitto:
         image: eclipse-mosquitto
-        container_name: mosquitto
+        container_name: mosquitto-selfsigned
         volumes:
             - ./certs:/mosquitto/config/certs
+            - ./certs/mqtt:/mosquitto/config/certs
             - ./mosquitto/config/:/mosquitto/config/
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
         user: "1883"
         ports:
-            - "1883:1883"
+            - "8883:8883"
         links: 
             - telegraf
         restart: always
@@ -32,7 +33,7 @@ services:
     
     telegraf:
         image: telegraf:1.13
-        container_name: telegraf
+        container_name: telegraf-selfsigned
         links: 
             - influxdb
         env_file: selfsigned.env
@@ -43,7 +44,7 @@ services:
     
     grafana:
         image: grafana/grafana
-        container_name: grafana
+        container_name: grafana-selfsigned
         ports: 
             - "3000:3000"
         env_file: selfsigned.env
