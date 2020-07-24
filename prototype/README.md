@@ -63,11 +63,11 @@ __Mosquitto__:
 
     a. Create `admin` user with all privileges
 
-            curl -G 'http://localhost:8086/query' --data-urlencode "q=CREATE USER admin WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES"
+            curl -XPOST 'http://localhost:8086/query' --data-urlencode "q=CREATE USER admin WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES"
 
     b. Give `telegraf` user all privileges
 
-            curl -G 'http://localhost:8086/query' \
+            curl -XPOST 'http://localhost:8086/query' \
                 -u admin:tiguitto \
                 --data-urlencode "q=CREATE USER telegraf WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES"
 
