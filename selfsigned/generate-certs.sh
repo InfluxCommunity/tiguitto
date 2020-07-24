@@ -9,95 +9,106 @@
 #                
 #============================================================================
 
-ROOT_UID=0
-E_NOTROOT=87
 CERTSDIR="certs"
 
-# Subjects for OpenSSL
-SUBJECT_CA="/OU=CA"
-SUBJECT_MQTT_SERVER="/OU=MQTT_SERVER"
-SUBJECT_MQTT_CLIENT="/OU=MQTT_CLIENT"
-SUBJECT_INFLUXDB="/OU=INFLUXDB_SERVER"
+# NOTE: Feel free to change the Geographical/Organizational Information Here
+# NOTE: DO NOT change the `OU` or `CN` values
 
-#===  FUNCTION  ================================================================
-#          NAME:  generate_CA
-#   DESCRIPTION:  Generate the CA key and CA Cert
-#    PARAMETERS:  none
-#       RETURNS:  none
-#===============================================================================
-function generate_CA() {
-    echo "Generating CA Key and Certificate"
-    echo "Please fill out the details according to needs"
-    openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA" -days 3650 -keyout ca.key -out ca.crt
-}
+SUBJECT_CA="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=Certificate Authority"
+SUBJECT_MQTT_SERVER="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=MQTTSERVER/CN=mosquitto"
+SUBJECT_INFLUXDB="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=INFLUXDB/CN=influxdb"
+# SUBJECT_GRAFANA="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=GRAFANA/CN=grafana"
 
-#===  FUNCTION  ================================================================
-#          NAME:  generate_mqtt_server_cert
-#   DESCRIPTION:  Generate Certificate for MQTT Broker
-#    PARAMETERS:  none
-#       RETURNS:  none
-#===============================================================================
-function generate_mqtt_server_cert () {
 
-    echo "Generating Server Certificate and Key for MQTT Broker"
-    echo "Please fill out the details according to needs"
-    openssl req -nodes -sha256 -new -subj "$SUBJECT_MQTT_SERVER" -keyout mqtt-server.key -out mqtt-server.csr
-    
-    echo "Sending Request to CA...."
-    openssl x509 -req -sha256 -in mqtt-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out mqtt-server.crt -days 3650
-}
+cd $(pwd)/$CERTSDIR
+mkdir mqtt/
+mkdir influxdb/
+# mkdir grafana/ # Do not generate Grafana Certificate for time-being
 
-#===  FUNCTION  ================================================================
-#          NAME:  generate_mqtt_client_cert
-#   DESCRIPTION:  Generate Certificate and key for MQTT Clients for Publishing Data
-#    PARAMETERS:  none
-#       RETURNS:  none
-#===============================================================================
-function generate_mqtt_client_cert () {
+function generate_ca() {
+        #===========================================================================
+        #       Generating Certificate Authority Key Pair
+        #===========================================================================
 
-    echo "Generating Server Certificate and Key for MQTT Client to Publish data to Broker. Used on IOT Nodes"
-    echo "Please fill out the details according to needs"
-    openssl req -new -nodes -sha256 -subj "$SUBJECT_MQTT_CLIENT" -out mqtt-client.csr -keyout mqtt-client.key 
+        echo "STEP1: Generating Certificate Authority"
+        echo $SUBJECT_CA
 
-    echo "Sending Request to CA...."
-    openssl x509 -req -sha256 -in mqtt-client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out mqtt-client.crt -days 3650
-}
-
-#===  FUNCTION  ================================================================
-#          NAME:  generate_influxdb_server_cert
-#   DESCRIPTION:  Generate Certificate for InfluxDB
-#    PARAMETERS:  none
-#       RETURNS:  none
-#===============================================================================
-function generate_influxdb_server_cert () {
-
-    echo "Generating Server Certificate and Key for InfluxDB"
-    echo "Please fill out the details according to needs"
-    openssl req -nodes -sha256 -new -subj "$SUBJECT_INFLUXDB" -keyout influxdb-server.key -out influxdb-server.csr
-
-    echo "Sending Request to CA...."
-    openssl x509 -req -sha256 -in influxdb-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out influxdb-server.crt -days 3650
+        openssl req -new -x509 -days 3650 -subj "$SUBJECT_CA" -keyout ca.key -out ca.crt
 }
 
 
-#-------------------------------------------------------------------------------
-#   Check if Script is running with Root Privileges
-#-------------------------------------------------------------------------------
+function generate_mqtt_server_cert() {
+        #===========================================================================
+        #       Generating Certificate for MQTT Broker
+        #===========================================================================
+
+        echo "STEP2: Generating Private Key for MQTT Broker"
+
+        openssl genrsa -out mqtt-server.key 2048
+
+        echo "STEP2a: Generating a Signing Request for MQTT Broker Cert"
+
+        openssl req -out mqtt-server.csr -key mqtt-server.key -subj "$SUBJECT_MQTT_SERVER" -new
 
 
-if [ "$UID" -ne "$ROOT_UID" ]; then
-	echo -e "Must be Root to run this script\n"
-	exit $E_NOTROOT
-fi
+        echo "STEP2b: Sending CSR to the CA"
 
-mkdir $CERTSDIR/influxdb
-mkdir $CERTSDIR/mqtt
+        openssl x509 -req -in mqtt-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out mqtt-server.crt -days 3650
+}
 
-cd $CERTSDIR
-generate_CA
+
+function generate_influxdb_cert() {
+        #===========================================================================
+        #       Generating Certificate for InfluxDB
+        #===========================================================================
+
+        echo "STEP3: Generating Private Key for INFLUXDB"
+
+        openssl genrsa -out influx-server.key 2048
+
+        echo "STEP3a: Generating a Signing Request for INFLUXDB"
+
+        openssl req -out influx-server.csr -key influx-server.key -subj "$SUBJECT_INFLUXDB" -new
+
+
+        echo "STEP3b: Sending CSR to the CA"
+
+        openssl x509 -req -in influx-server.csr  -CA ca.crt -CAkey ca.key -CAcreateserial -out influx-server.crt -days 3650
+}
+
+
+function generate_grafana_cert() {
+        #===========================================================================
+        #         Generating Certificate for Grafana
+        #===========================================================================
+
+        echo "STEP4: Generating Private Key for GRAFANA"
+
+        openssl genrsa -out grafana-server.key 2048
+
+        echo "STEP4a: Generating a Signing Request for GRAFANA"
+
+        openssl req -out grafana-server.csr -key grafana-server.key -subj "$SUBJECT_GRAFANA" -new
+
+        openssl x509 -req -in grafana-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out grafana-server.crt -days 3650
+}
+
+
+generate_ca
 generate_mqtt_server_cert
-generate_mqtt_client_cert
-generate_influxdb_server_cert
+generate_influxdb_cert
+# generate_grafana_cert # Do Not Generate Grafana certificate for time-being
 
-mv mqtt-* mqtt/
-mv influxdb-* influxdb/
+echo "Moving Certificates in to dedicated directories"
+
+mv mqtt-server.* mqtt/
+mv influx-server.* influxdb/
+# mv grafana-server.* grafana/
+
+echo "Copying the CA Certificate for Mosquitto, InfluxDB, Grafana"
+
+cp ca.crt mqtt/
+cp ca.crt influxdb/
+#cp ca.crt grafana/
+
+exit 0
