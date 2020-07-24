@@ -17,14 +17,12 @@ services:
         image: eclipse-mosquitto
         container_name: mosquitto
         volumes:
-            - ./certs/ca.crt:/mosquitto/config/certs/ca.crt
             - ./certs/mqtt:/mosquitto/config/certs
-            - ./mosquitto/config/:/mosquitto/config/
+            - ./mosquitto/config:/mosquitto/config
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
         user: "1883"
         ports:
-            - "1883:1883"
             - "8883:8883"
         links: 
             - telegraf
@@ -33,7 +31,7 @@ services:
             - "iotstack"
     
     telegraf:
-        image: telegraf:1.13
+        image: telegraf
         container_name: telegraf
         links: 
             - influxdb
@@ -45,7 +43,7 @@ services:
     
     grafana:
         image: grafana/grafana
-        container_name: grafana-selfsigned
+        container_name: grafana
         ports: 
             - "3000:3000"
         env_file: selfsigned.env
