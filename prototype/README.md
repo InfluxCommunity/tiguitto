@@ -82,11 +82,11 @@ __Mosquitto__:
 
 ### Component Logs
 
-- For `mosquitto`:
+- For `mosquitto` Persistent Logs:
 
         cat mosquitto/log/mosquitto.log
 
-- For `telegraf`, `influxdb`, `grafana`:
+- For `telegraf`, `influxdb`, `grafana`, `mosquitto` stdout Logs:
 
     a. from root directory:
 
@@ -95,6 +95,8 @@ __Mosquitto__:
         docker-compose -f prototype/docker-compose.prototype.yml logs -f influxdb
         # OR
         docker-compose -f prototype/docker-compose.prototype.yml logs -f grafana
+        # OR
+        docker-compose -f prototype/docker-compose.prototype.yml logs -f mosquitto
 
     b. from `prototype` (this) directory:
 
@@ -103,6 +105,8 @@ __Mosquitto__:
         docker-compose -f docker-compose.prototype.yml logs -f influxdb
         # OR
         docker-compose -f docker-compose.prototype.yml logs -f grafana
+        # OR
+        docker-compose -f docker-compose.prototype.yml logs -f mosquitto
 
 ---
 
