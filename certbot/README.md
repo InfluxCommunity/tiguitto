@@ -38,7 +38,7 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 2. Encrypting the Passwords for Mosquitto Broker:
 
         # Assuming you are in the `certbot` directory
-        docker run -it --rm $(pwd)/mosquitto/config:/mosquitto/config eclipse-mosquitto mosquitto_passwd -U /mosquitto/config/passwd
+        docker run -it --rm -v $(pwd)/mosquitto/config:/mosquitto/config eclipse-mosquitto mosquitto_passwd -U /mosquitto/config/passwd
     
     If there is no response from the command, the passwords are encrypted. You can see the encrypted passwords using:
 
@@ -108,6 +108,10 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 
 ## Availability
 
-- Grafana should be available on `https://<DOMAIN_NAME>:3000/login`
+- Grafana should be available on `https://<DOMAIN_NAME>:3000/login` with credentials:
+
+        username: admin
+        password: tiguitto
+
 - InfluxDB should be available on `https://<DOMAIN_NAME>:8086`
 - Mosquitto Broker should be available on `ssl://<DOMAIN_NAME>:8883`
