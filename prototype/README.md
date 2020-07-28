@@ -6,16 +6,16 @@ are required for all the components.
 
 ## Environment Variables & Configuration Files
 
-__Authentication__:
+### Authentication
 
 - Use the `prototype.env` file to change the default username and passwords for the stack components.
 
-__Telegraf__:
+### Telegraf
 
 - Adapt the `topics`, `database` in the `telegraf/telegraf.conf` according to your requirements
 - Optionally add / remove the `[[processors.regex]]` logic from the `telegraf.conf` file
 
-__Mosquitto__:
+### Mosquitto
 
 - If you wish to change the username/passwords for publishing and subscribing clients edit the `mosquitto/config/passwd` file.
     The format of the file is as follows:
