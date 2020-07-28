@@ -17,15 +17,16 @@ Since the stack is very often used in IoT Setups, there are three usable scenari
 
 |  CASE          |   Security    |  Usage                             |  Status           |
 |:--------------:|:-------------:|:-----------------------------------|:-----------------:|
-| `prototype`    | Basic Auth.   | Quick Deployments, Tests on Edge Devices |  On-Going   |
-| `self-signed`  | X.509 Certificates | For Standalone Stacks for internal infrastructure | On-Going |
-| `certbot`      | Let's Encrypt Certificates | For Production-Ready Cloud Deployments }| On-Going |
+| `prototype`    | Basic Auth.   | Quick Deployments, Tests on Edge Devices |  DONE   |
+| `selfsigned`  | X.509 Certificates | For Standalone Stacks for internal infrastructure | DONE |
+| `certbot`      | Let's Encrypt Certificates | For Production-Ready Cloud Deployments | DONE |
 
 
 ## Usage
 
-clone the repository and from root directory:
+1. Refer to `README.md` in each case directory, since before bringing the stack up you will need to configure the case
+by executing some scripts and commands
 
-    docker-compose -f <CASE>/docker-compose.<CASE>.yml up -d
+2. from root directory:
 
-Refer to `README.md` in each case directory
+        docker-compose -f <CASE>/docker-compose.<CASE>.yml up -d
