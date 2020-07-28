@@ -27,9 +27,10 @@ __Mosquitto__:
 
 1. Create a network for your stack:
 
-    docker create network iotstack
+        docker create network iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
+
     ```bash
     # Assuming you are in the `prototype` directory
     docker run -it --rm -v $(pwd)/mosquitto/config:/mosquitto/config eclipse-mosquitto mosquitto_passwd -U /mosquitto/config/passwd
@@ -57,7 +58,7 @@ __Mosquitto__:
 
             docker-compose -f docker-compose.prototype.yml up
     
-    This should bring the services up for TIGUITTO. add `-d` flag to detach the stack logs
+    add `-d` flag to detach the stack logs
 
 5. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
 
@@ -81,10 +82,6 @@ __Mosquitto__:
     You can use the InfluxDB credentials created in Step 4 to create an InfluxDB Datasource in Grafana
 
 ### Component Logs
-
-- For `mosquitto` Persistent Logs:
-
-        cat mosquitto/log/mosquitto.log
 
 - For `telegraf`, `influxdb`, `grafana`, `mosquitto` stdout Logs:
 
