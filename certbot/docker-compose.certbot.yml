@@ -31,7 +31,7 @@ services:
             - "iotstack"
     
     telegraf:
-        image: telegraf:1.13
+        image: telegraf
         container_name: telegraf
         links: 
             - influxdb
