@@ -33,7 +33,7 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 
 1. Create a network for your stack:
 
-        docker create network iotstack
+        docker network create iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
 
