@@ -115,3 +115,8 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 
 - InfluxDB should be available on `https://<DOMAIN_NAME>:8086`
 - Mosquitto Broker should be available on `ssl://<DOMAIN_NAME>:8883`
+
+
+## Mosquitto MQTT Broker User Management
+
+Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)

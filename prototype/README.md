@@ -161,3 +161,8 @@ Grafana container will use the following environment variables to set up an admi
 
     GF_ADMIN_USERNAME=admin
     GF_ADMIN_PASSWORD=tiguitto
+
+
+## Mosquitto MQTT Broker User Management
+
+Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)

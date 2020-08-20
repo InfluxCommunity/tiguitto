@@ -153,3 +153,7 @@ Change the values accordingly in the Data Sources Section of Grafana.
 | InfluxDB Details_Database | Database: `edge`  |
 | InfluxDB Details_User | `admin` |
 | InfluxDB Details_Password | `tiguitto` |
+
+## Mosquitto MQTT Broker User Management
+
+Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)
