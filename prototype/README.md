@@ -27,7 +27,7 @@ are required for all the components.
 
 1. Create a network for your stack:
 
-        docker create network iotstack
+        docker network create iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
 
