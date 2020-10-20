@@ -27,7 +27,7 @@ are required for all the components.
 
 1. Create a network for your stack:
 
-        docker create network iotstack
+        docker network create iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
 
@@ -40,27 +40,19 @@ are required for all the components.
 
         cat mosquitto/config/passwd
 
-3. Change the Ownership for the Mosquitto Directories:
-
-        sudo chown -R 1883:1883 mosquitto/log
-        sudo chown -R 1883:1883 mosquitto/data
-        sudo chown -R 1883:1883 mosquitto/config
-
-    This seems to be a problem with `eclipse-mosquitto` docker image (see [Mosquitto Issue #1078](https://github.com/eclipse/mosquitto/issues/1078)). Although `user: "1883"` is defined in the Compose file, the logs are not written and hence the Broker exits with failure.
-
-4. Bring the stack up:
+3. Bring the stack up:
 
     a. from the root directory:
 
-            docker-compose -f prototype/docker-compose.prototype.yml up
+           USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f prototype/docker-compose.prototype.yml up
 
     b. from the present `prototype` directory:
 
-            docker-compose -f docker-compose.prototype.yml up
+            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.prototype.yml up
     
     add `-d` flag to detach the stack logs
 
-5. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
+4. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
 
     a. Create `admin` user with all privileges
 
@@ -74,7 +66,7 @@ are required for all the components.
 
     This will allow Telegraf to insert data into the dedicated database
 
-6. Grafana Should be available on http://localhost:3000/login with the following credentials:
+5. Grafana Should be available on http://localhost:3000/login with the following credentials:
 
         username: admin
         password: tiguitto
@@ -114,7 +106,7 @@ are required for all the components.
 | `influxdb`  | 8086  |
 | `telegraf`  | n/a   |
 | `grafana`   | 3000  |
-| `mosquitto` | 1883  |
+| `mosquitto` | 1883 (mqtt), 1884 (ws)  |
 
 ---
 
@@ -165,4 +157,4 @@ Grafana container will use the following environment variables to set up an admi
 
 ## Mosquitto MQTT Broker User Management
 
-Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)
+~~Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)~~ usage of `USER_ID=$(id -u)` and `GRP_ID=$(id -g)` should be able to do the trick!
