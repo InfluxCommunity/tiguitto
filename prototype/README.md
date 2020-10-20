@@ -75,6 +75,7 @@ are required for all the components.
 
 ### Component Logs
 
+<details>
 - For `telegraf`, `influxdb`, `grafana`, `mosquitto` stdout Logs:
 
     a. from root directory:
@@ -97,6 +98,7 @@ are required for all the components.
         # OR
         docker-compose -f docker-compose.prototype.yml logs -f mosquitto
 
+</details>
 ---
 
 ## Ports for Components
@@ -114,6 +116,7 @@ are required for all the components.
 
 ### Mosquitto MQTT Broker
 
+<details>
 The `mosquitto/config/passwd` file has two users in it:
 
 
@@ -125,9 +128,10 @@ The `mosquitto/config/passwd` file has two users in it:
 The file needs to be encrypted in order for the Broker to accept it. Passwords in Mosquitto cannot be plain-text.
 
 See Step 1 for Reference
+</details>
 
 ### Telegraf
-
+<details>
 The configuration file (`telegraf.conf`) will use the following environment variables to write data into
 InfluxDB
 
@@ -140,21 +144,73 @@ Telegraf will use the following environment variables to subscribe to Mosquitto 
 
     TG_MOSQUITTO_USERNAME=subclient
     TG_MOSQUITTO_PASSWORD=tiguitto
+</details>
 
 ### InfluxDB
-
+<details>
 > Since InfluxDB does not provide Environment Variables to setup an `admin` user, one needs to use `curl` to setup privileges
 
 See Step 4 for Reference
+</details>
 
 ### Grafana
-
+<details>
 Grafana container will use the following environment variables to set up an admin account
 
     GF_ADMIN_USERNAME=admin
     GF_ADMIN_PASSWORD=tiguitto
 
+</details>
 
-## Mosquitto MQTT Broker User Management
 
-~~Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)~~ usage of `USER_ID=$(id -u)` and `GRP_ID=$(id -g)` should be able to do the trick!
+## Mosquitto Websocket Client using Paho-MQTT-Python
+
+Code is as follows:
+
+<details>
+
+```python
+import paho.mqtt.client as mqtt
+import sys
+HOST = '<YOUR_BROKER_IP_ADDRESS>'
+PORT = 1884
+
+CLIENT_ID='tiguitto-prototype-ws'
+
+def on_connect(mqttc, obj, flags, rc):
+    print("rc: "+str(rc))
+
+def on_message(mqttc, obj, msg):
+    print(msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
+
+def on_publish(mqttc, obj, mid):
+    print("mid: "+str(mid))
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+mqttc = mqtt.Client(CLIENT_ID, transport="websockets")
+
+
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+mqttc.on_log = on_log
+
+mqttc.connect(HOST, PORT, 60)
+
+mqttc.subscribe('IOT/#', 0)
+
+try:
+        mqttc.loop_forever()
+
+except KeyboardInterrupt:
+        mqttc.loop_stop()
+        sys.exit()
+```
+
+</details>
