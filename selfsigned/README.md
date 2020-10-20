@@ -28,19 +28,19 @@ format of the file is as follows:
 
 The bash script `generate-certs.sh` uses `openssl` to generate:
 1. __Certificate Authority (CA)__ key and certificate
-2. keys and certificates for InfluxDB, Mosquitto
+2. keys and certificates for InfluxDB, Mosquitto, Mosquitto Clients for Publishing
 
 This requires subjects which has some hard-coded information in the script.
 
 Feel Free to change the `SUBJECT_*` variables' geographical and organizational values in `generate-certs.sh`.
 
-> __NOTE__: _DO NOT CHANGE_ the `CN` value is you decide to change `SUBJECT_*` variables
+> __NOTE__: _CHANGE_ the `CN` value to your Server's Domain Name if it has one, if not currently it uses the Host IP address using `hostname -I`
 
 ## Steps to Bring the Stack Up
 
 1. Create a network for your stack:
 
-        docker create network iotstack
+        docker network create iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
 
@@ -51,14 +51,9 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
 
         cat mosquitto/config/passwd
 
-3. Change the Ownership for the Mosquitto Directories:
+3. Generate Self-Signed Certificates using the script:
 
-        sudo chown -R 1883:1883 mosquitto/log
-        sudo chown -R 1883:1883 mosquitto/data
-        sudo chown -R 1883:1883 mosquitto/config
-
-4. Generate Self-Signed Certificates using the script:
-
+        chmod +x generate-certs.sh
         ./generate-certs.sh
     
     a. During initial Creation for __CA__, you will be asked to enter __PEM Passphrase__. You can keep it whatever you want, but you will need it everytime you create a new certificate. For simplicity use `tiguitto`
@@ -78,24 +73,24 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
                         ├── ca.crt
                         ├── mqtt-server.crt
                         ├── mqtt-server.csr
-                        └── mqtt-server.key
+                        |── mqtt-server.key
+                        ├── mqtt-client.crt
+                        ├── mqtt-client.csr
+                        └── mqtt-client.key
 
         NOTE: We copy the `ca.crt` in each component directory in order to keep the mount volumes in the compose file simple.
+4. Distribute `mqtt-client.crt` and `mqtt-client.key` to the Sensor Nodes that need to publish information when `require_certificates` is set to `true` in Mosquitto Configuration File
 
-5. Change the Ownership for the certificate directories according to the components:
 
-        sudo chown -R 1883:1883 certs/mqtt/
-        sudo chown -R influxdb:influxdb certs/influxdb/
-
-6. Bring the Stack up:
+5. Bring the Stack up:
 
     a. from the root directory:
 
-            docker-compose -f selfsigned/docker-compose.selfsigned.yml up
+            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f selfsigned/docker-compose.selfsigned.yml up
 
     b. from the present `selfsigned` directory:
 
-            docker-compose -f docker-compose.selfsigned.yml up
+            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.selfsigned.yml up
     
         add `-d` flag to detach the stack logs
 
@@ -154,6 +149,68 @@ Change the values accordingly in the Data Sources Section of Grafana.
 | InfluxDB Details_User | `admin` |
 | InfluxDB Details_Password | `tiguitto` |
 
-## Mosquitto MQTT Broker User Management
+## Mosquitto Websocket Client using Paho-MQTT-Python With Certificates
 
-Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)
+- if `mosquitto.conf` has `require_certificates true` then the following code will work:
+
+<details>
+
+```python
+import ssl
+import sys
+import paho.mqtt.client as mqtt
+
+
+BROKER = '<IP_ADDRESS_BROKER>'
+PORT = 8884
+
+CA_CERT_FILE = 'path/to/selfsigned/ca.crt'
+CERT_FILE = 'path/to/selfsigned/mqtt-client.crt'
+KEY_FILE = 'path/to/selfsigned/mqtt-client.key'
+TOPIC = 'IOT/#'
+
+def on_connect(mqttc, obj, flags, rc):
+    print("rc: "+str(rc))
+
+def on_message(mqttc, obj, msg):
+    print(msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
+
+def on_publish(mqttc, obj, mid):
+    print("mid: "+str(mid))
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+
+
+# Create Client with Websockets transport
+mqttc = mqtt.Client('tiguitto-selfsigned-ws', transport='websockets')
+
+mqttc.tls_set(ca_certs=CA_CERT_FILE,certfile=CERT_FILE,keyfile=KEY_FILE,tls_version=ssl.PROTOCOL_TLSv1_2)
+mqttc.tls_insecure_set(True) # for Self-Signed Certificates
+
+
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+# Uncomment to enable debug messages
+mqttc.on_log = on_log
+mqttc.connect(BROKER, PORT, 60)
+mqttc.subscribe(TOPIC, 0)
+
+
+try:
+    mqttc.loop_forever()
+except KeyboardInterrupt as e:
+    print('CTRL+C Pressed')
+    mqttc.loop_stop()
+    mqttc.disconnect()
+    sys.exit()
+
+```
+
+</details>
