@@ -211,6 +211,7 @@ try:
 
 except KeyboardInterrupt:
         mqttc.loop_stop()
+        mqttc.disconnect()
         sys.exit()
 ```
 
