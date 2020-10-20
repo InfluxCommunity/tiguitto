@@ -99,6 +99,7 @@ are required for all the components.
         docker-compose -f docker-compose.prototype.yml logs -f mosquitto
 
 </details>
+
 ---
 
 ## Ports for Components
