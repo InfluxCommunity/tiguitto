@@ -44,12 +44,6 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 
         cat mosquitto/config/passwd
 
-3. Change Ownership for the Mosquitto Directories:
-
-        sudo chown -R 1883:1883 mosquitto/log
-        sudo chown -R 1883:1883 mosquitto/data
-        sudo chown -R 1883:1883 mosquitto/config
-
 ### Certbot Installation + Certificate Generation
 
 1. Execute the script `00-install-certbot.sh` (irrespective, if `certbot` is installed or not since the script will also setup HTTP Port (80) for `certbot`)
@@ -93,17 +87,13 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 
     a. from the root directory:
 
-            docker-compose -f certbot/docker-compose.certbot.yml up
+            USER_ID=$(id -u) GRP_ID=$(id -g) docker-compose -f certbot/docker-compose.certbot.yml up
     
     b. from the present `certbot` directory:
 
-            docker-compose -f docker-compose.certbot.yml up
+            USER_ID=$(id -u) GRP_ID=$(id -g) docker-compose -f docker-compose.certbot.yml up
 
     Use the `-d` flag to detach from the stack logs.
-
-4. You might need to change the ownership of the `/etc/letsencrypt/live/<DOMAIN_NAME>/` directory for Mosquitto Broker to access:
-
-        sudo chown -R 1883:1883 /etc/letsencrypt/
 
 
 ## Availability
@@ -117,6 +107,62 @@ If you wish to change the usernames/passwords for publishing and subscribing cli
 - Mosquitto Broker should be available on `ssl://<DOMAIN_NAME>:8883`
 
 
-## Mosquitto MQTT Broker User Management
+## Mosquitto Websocket Client using Paho-MQTT-Python
 
-Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)
+Code is as follows:
+
+<details>
+
+```python
+import paho.mqtt.client as mqtt
+import sys
+HOST = '<YOUR_DOMAIN>'
+PORT = 8884
+
+CLIENT_ID='tiguitto-certbot-ws'
+
+def on_connect(mqttc, obj, flags, rc):
+    print("rc: "+str(rc))
+
+def on_message(mqttc, obj, msg):
+    print(msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
+
+def on_publish(mqttc, obj, mid):
+    print("mid: "+str(mid))
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+mqttc = mqtt.Client(CLIENT_ID, transport="websockets")
+mqttc.username_pw_set('pubclient', 'tiguitto')
+mqttc.tls_set(ca_certs=None,certfile=None,keyfile=None,tls_version=ssl.PROTOCOL_TLSv1_2)
+
+# NOTE:
+# if require_certificate set to true in mosquitto.conf
+# Make sure to send the ca_certs, certfile, keyfile, certs_reqs=True
+# e.g.  mqttc.tls_set(ca_certs=args.cacerts, certfile=None, keyfile=None, cert_reqs=cert_required, tls_version=tlsVersion)
+mqttc.tls_insecure_set(False)
+
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+mqttc.on_log = on_log
+
+mqttc.connect(HOST, PORT, 60)
+
+mqttc.subscribe('IOT/#', 0)
+
+try:
+        mqttc.loop_forever()
+
+except KeyboardInterrupt:
+        mqttc.loop_stop()
+        mqttc.disconnect()
+        sys.exit()
+```
+
+</details>
