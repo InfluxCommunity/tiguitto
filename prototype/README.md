@@ -214,5 +214,4 @@ except KeyboardInterrupt:
         mqttc.disconnect()
         sys.exit()
 ```
-
 </details>
