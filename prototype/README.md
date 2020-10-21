@@ -40,27 +40,19 @@ are required for all the components.
 
         cat mosquitto/config/passwd
 
-3. Change the Ownership for the Mosquitto Directories:
-
-        sudo chown -R 1883:1883 mosquitto/log
-        sudo chown -R 1883:1883 mosquitto/data
-        sudo chown -R 1883:1883 mosquitto/config
-
-    This seems to be a problem with `eclipse-mosquitto` docker image (see [Mosquitto Issue #1078](https://github.com/eclipse/mosquitto/issues/1078)). Although `user: "1883"` is defined in the Compose file, the logs are not written and hence the Broker exits with failure.
-
-4. Bring the stack up:
+3. Bring the stack up:
 
     a. from the root directory:
 
-            docker-compose -f prototype/docker-compose.prototype.yml up
+           USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f prototype/docker-compose.prototype.yml up
 
     b. from the present `prototype` directory:
 
-            docker-compose -f docker-compose.prototype.yml up
+            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.prototype.yml up
     
     add `-d` flag to detach the stack logs
 
-5. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
+4. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
 
     a. Create `admin` user with all privileges
 
@@ -74,7 +66,7 @@ are required for all the components.
 
     This will allow Telegraf to insert data into the dedicated database
 
-6. Grafana Should be available on http://localhost:3000/login with the following credentials:
+5. Grafana Should be available on http://localhost:3000/login with the following credentials:
 
         username: admin
         password: tiguitto
@@ -83,6 +75,7 @@ are required for all the components.
 
 ### Component Logs
 
+<details>
 - For `telegraf`, `influxdb`, `grafana`, `mosquitto` stdout Logs:
 
     a. from root directory:
@@ -105,6 +98,8 @@ are required for all the components.
         # OR
         docker-compose -f docker-compose.prototype.yml logs -f mosquitto
 
+</details>
+
 ---
 
 ## Ports for Components
@@ -114,7 +109,7 @@ are required for all the components.
 | `influxdb`  | 8086  |
 | `telegraf`  | n/a   |
 | `grafana`   | 3000  |
-| `mosquitto` | 1883  |
+| `mosquitto` | 1883 (mqtt), 1884 (ws)  |
 
 ---
 
@@ -122,6 +117,7 @@ are required for all the components.
 
 ### Mosquitto MQTT Broker
 
+<details>
 The `mosquitto/config/passwd` file has two users in it:
 
 
@@ -133,9 +129,10 @@ The `mosquitto/config/passwd` file has two users in it:
 The file needs to be encrypted in order for the Broker to accept it. Passwords in Mosquitto cannot be plain-text.
 
 See Step 1 for Reference
+</details>
 
 ### Telegraf
-
+<details>
 The configuration file (`telegraf.conf`) will use the following environment variables to write data into
 InfluxDB
 
@@ -148,21 +145,73 @@ Telegraf will use the following environment variables to subscribe to Mosquitto 
 
     TG_MOSQUITTO_USERNAME=subclient
     TG_MOSQUITTO_PASSWORD=tiguitto
+</details>
 
 ### InfluxDB
-
+<details>
 > Since InfluxDB does not provide Environment Variables to setup an `admin` user, one needs to use `curl` to setup privileges
 
 See Step 4 for Reference
+</details>
 
 ### Grafana
-
+<details>
 Grafana container will use the following environment variables to set up an admin account
 
     GF_ADMIN_USERNAME=admin
     GF_ADMIN_PASSWORD=tiguitto
 
+</details>
 
-## Mosquitto MQTT Broker User Management
 
-Refer to [my Blog Post](https://shantanoo-desai.github.io/posts/technology/nugget_mqtt_iot/)
+## Mosquitto Websocket Client using Paho-MQTT-Python
+
+Code is as follows:
+
+<details>
+
+```python
+import paho.mqtt.client as mqtt
+import sys
+HOST = '<YOUR_BROKER_IP_ADDRESS>'
+PORT = 1884
+
+CLIENT_ID='tiguitto-prototype-ws'
+
+def on_connect(mqttc, obj, flags, rc):
+    print("rc: "+str(rc))
+
+def on_message(mqttc, obj, msg):
+    print(msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
+
+def on_publish(mqttc, obj, mid):
+    print("mid: "+str(mid))
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+mqttc = mqtt.Client(CLIENT_ID, transport="websockets")
+
+
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+mqttc.on_log = on_log
+
+mqttc.connect(HOST, PORT, 60)
+
+mqttc.subscribe('IOT/#', 0)
+
+try:
+        mqttc.loop_forever()
+
+except KeyboardInterrupt:
+        mqttc.loop_stop()
+        mqttc.disconnect()
+        sys.exit()
+```
+</details>

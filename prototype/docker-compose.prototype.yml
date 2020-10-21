@@ -8,7 +8,7 @@ services:
         ports: 
             - "8086:8086"
         volumes: 
-            - ./influxdb:/var/lib/influxdb
+            - influxdb_data:/var/lib/influxdb
         networks: 
             - "iotstack"
 
@@ -19,9 +19,10 @@ services:
             - ./mosquitto/config/:/mosquitto/config/
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
-        user: "1883"
+        user: "${USER_ID}:${GRP_ID}"
         ports:
             - "1883:1883"
+            - "1884:1884"
         links: 
             - telegraf
         restart: always
@@ -49,13 +50,14 @@ services:
         links: 
             - influxdb
         volumes: 
-            - ./grafana/data:/var/lib/grafana
+            - grafana_data/var/lib/grafana
         networks: 
             - "iotstack"
 
 volumes: 
-    influxdb:
-    grafana:
+    influxdb_data:
+    grafana_data:
 
 networks: 
     iotstack:
+        external: true
