@@ -39,7 +39,7 @@ services:
         env_file: selfsigned.env
         volumes:
             - ./certs/mqtt:/etc/telegraf 
-            - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
         networks: 
             - "iotstack"
     

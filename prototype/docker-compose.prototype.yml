@@ -36,7 +36,7 @@ services:
             - influxdb
         env_file: prototype.env
         volumes: 
-            - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
         networks: 
             - "iotstack"
     
@@ -50,7 +50,7 @@ services:
         links: 
             - influxdb
         volumes: 
-            - grafana_data/var/lib/grafana
+            - grafana_data:/var/lib/grafana
         networks: 
             - "iotstack"
 

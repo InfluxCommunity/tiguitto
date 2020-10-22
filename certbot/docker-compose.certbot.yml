@@ -38,7 +38,7 @@ services:
             - influxdb
         env_file: certbot.env
         volumes: 
-            - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
         networks: 
             - "iotstack"
     
