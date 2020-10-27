@@ -174,3 +174,25 @@ except KeyboardInterrupt:
         sys.exit()
 ```
 </details>
+
+# Snapshots
+
+- Grafana Dashboard Login Behind Traefik Reverse-Proxy with Subpath: `<IP_address>/grafana`
+
+![Prototype Grafana Login](../.github/prototype/grafana_login.jpg)
+
+- Traefik Dashboard Login: `<IP_address>/dashboard/` (username:password: `admin:tiguitto`)
+
+![Prototype Traefik Login](../.github/prototype/traefik_login.jpg)
+
+- Traefik Dashboard after Credentials: `<IP_address>/dashboard/`
+
+![Prototype Traefik Dashboard](../.github/prototype/traefik_dashboard.jpg)
+
+- MQTT Client (using [MQTT.fx](https://mqttfx.org)) Settings to connect to Broker: `tcp://<IP_address>:1883`
+
+![Prototype MQTT Client Settings 1: Connecting to Broker](../.github/prototype/mqtt_settings_1.jpg)
+
+- MQTT Client Setting to enter Credentials for broker:
+
+![Prototype MQTT Client Settings 2: Credentials in Client for Broker](../.github/prototype/mqtt_settings_2.jpg)
