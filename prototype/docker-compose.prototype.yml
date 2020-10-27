@@ -12,6 +12,12 @@ services:
             # MQTT
             - "1883:1883"
             - "1884:1884"
+        depends_on:
+            # Let every other service start before traefik
+            - mosquitto
+            - grafana
+            - influxdb
+            - telegraf
         volumes:
             # Traefik Static Configuration
             - ./traefik/traefik.toml:/etc/traefik/traefik.toml
@@ -28,8 +34,6 @@ services:
         image: influxdb
         container_name: influxdb
         env_file: prototype.env
-        # ports: 
-        #     - "8086:8086"
         volumes: 
             - influxdb_data:/var/lib/influxdb
         networks: 
@@ -37,7 +41,7 @@ services:
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.influxdb-router=influxdb-router@file"
-            - "traefik.http.router.influxdb-router.middlewares=influxdb-mw@file"
+            - "traefik.http.routers.influxdb-router.middlewares=influxdb-mw@file"
             - "traefik.http.routers.influxdb-router.service=influxdb@file"
 
     mosquitto:
@@ -82,8 +86,6 @@ services:
     grafana:
         image: grafana/grafana
         container_name: grafana
-        # ports: 
-        #     - "3000:3000"
         env_file: prototype.env
         user: "472"
         links: 
@@ -95,7 +97,7 @@ services:
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.grafana-router=grafana-router@file"
-            - "traefik.http.router.grafana-router.middlewares=grafana-mw@file"
+            - "traefik.http.routers.grafana-router.middlewares=grafana-mw@file"
             - "traefik.http.routers.grafana-router.service=grafana@file"
 
 volumes: 
