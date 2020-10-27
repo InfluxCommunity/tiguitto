@@ -1,16 +1,47 @@
 version: "3"
 
 services:
+    traefik:
+        image: traefik:v2.3
+        container_name: traefik
+        restart: always
+        networks:
+            - "iotstack"
+        ports:
+            - "80:80"
+            # - "8080:8080"
+            # MQTT
+            - "1883:1883"
+            - "1884:1884"
+        volumes:
+            # Traefik Static Configuration
+            - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+            - ./traefik/log/access.log:/log/access.log
+            # Traefik Dynamic Configuration
+            - ./traefik/configurations:/etc/traefik/configurations
+            # Docker Provider via Socket
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.traefik-http-router.rule=PathPrefix(`/traefik`)"
+            - "traefik.http.routers.traefik-http-router.entrypoints=web"
+            - "traefik.http.routers.traefik-http-router.service=api@internal"
+            - "traefik.http.routers.traefik-http-router.middlewares=user-auth@file"
     influxdb:
         image: influxdb
         container_name: influxdb
         env_file: prototype.env
-        ports: 
-            - "8086:8086"
+        # ports: 
+        #     - "8086:8086"
         volumes: 
             - influxdb_data:/var/lib/influxdb
         networks: 
             - "iotstack"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.influxdb-router=influxdb-router@file"
+            - "traefik.http.router.influxdb-router.middlewares=influxdb-mw@file"
+            - "traefik.http.routers.influxdb-router.service=influxdb@file"
 
     mosquitto:
         image: eclipse-mosquitto
@@ -20,14 +51,23 @@ services:
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
         user: "${USER_ID}:${GRP_ID}"
-        ports:
-            - "1883:1883"
-            - "1884:1884"
+        # ports:
+        #     - "1883:1883"
+        #     - "1884:1884"
         links: 
             - telegraf
         restart: always
         networks: 
             - "iotstack"
+        
+        labels:
+            - "traefik.enable=true"
+            # TCP Routers for MQTT and Websockets
+            - "traefik.tcp.routers.mqtt-router=mqtt-router@file"
+            - "traefik.tcp.routers.mqtt-websockets-router=mqtt-websockets-router@file"
+            # TCP Services for MQTT and Websockets
+            - "traefik.tcp.services.mosquitto=mosquitto@file"
+            - "traefik.tcp.services.mosquitto-ws=mosquitto-ws@file"
     
     telegraf:
         image: telegraf
@@ -39,20 +79,27 @@ services:
             - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
         networks: 
             - "iotstack"
+        labels:
+            - "traefik.enable=false"
     
     grafana:
         image: grafana/grafana
         container_name: grafana
-        ports: 
-            - "3000:3000"
+        # ports: 
+        #     - "3000:3000"
         env_file: prototype.env
-        user: "0"
+        user: "472"
         links: 
             - influxdb
         volumes: 
             - grafana_data:/var/lib/grafana
         networks: 
             - "iotstack"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.grafana-router=grafana-router@file"
+            - "traefik.http.router.grafana-router.middlewares=grafana-mw@file"
+            - "traefik.http.routers.grafana-router.service=grafana@file"
 
 volumes: 
     influxdb_data:
