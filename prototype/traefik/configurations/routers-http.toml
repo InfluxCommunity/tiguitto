@@ -4,6 +4,7 @@
         [http.routers.api-router]
             rule = "PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
             entryPoints = ["web"]
+            middlewares = ["user-auth"]
             service = "api@internal"
 
         [http.routers.grafana-router]
