@@ -3,10 +3,10 @@
         [http.services.grafana]
             [http.services.grafana.loadBalancer]
                 [[http.services.grafana.loadBalancer.servers]]
-                    url = "http://grafana:3000"
+                    url = "http://grafana:3000/"
                 [http.services.grafana.loadBalancer.healthCheck]
-                    path = "/api/health"
-                    interval = "10s"
+                    path = "grafana/api/health"
+                    interval = "30s"
         
         [http.services.influxdb]
             [http.services.influxdb.loadBalancer]
@@ -14,4 +14,4 @@
                     url = "http://influxdb:8086"
                 [http.services.influxdb.loadBalancer.healthCheck]
                     path = "/ping"
-                    interval = "10s"
+                    interval = "30s"
