@@ -18,13 +18,13 @@
 [[outputs.influxdb]]
     urls = [ "http://influxdb:8086" ]
 
-    database = "edge"
+    database = "${INFLUXDB_DB}"
 
     skip_database_creation = false
 
     timeout = "5s"
-    username = "${INFLUX_USERNAME}"
-    password = "${INFLUX_PASSWORD}"
+    username = "${INFLUXDB_USER}"
+    password = "${INFLUXDB_PASSWORD}"
 
 ###############################################################
 #                   PROCESSOR PLUGINS                         #
