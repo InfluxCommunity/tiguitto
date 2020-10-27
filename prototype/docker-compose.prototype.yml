@@ -9,7 +9,6 @@ services:
             - "iotstack"
         ports:
             - "80:80"
-            # - "8080:8080"
             # MQTT
             - "1883:1883"
             - "1884:1884"
@@ -23,10 +22,8 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock:ro
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.traefik-http-router.rule=PathPrefix(`/traefik`)"
-            - "traefik.http.routers.traefik-http-router.entrypoints=web"
+            - "traefik.http.routers.api-router=api-router@file"
             - "traefik.http.routers.traefik-http-router.service=api@internal"
-            - "traefik.http.routers.traefik-http-router.middlewares=user-auth@file"
     influxdb:
         image: influxdb
         container_name: influxdb
@@ -51,9 +48,9 @@ services:
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
         user: "${USER_ID}:${GRP_ID}"
-        # ports:
-        #     - "1883:1883"
-        #     - "1884:1884"
+        expose:
+            - 1883
+            - 1884
         links: 
             - telegraf
         restart: always
