@@ -24,7 +24,7 @@
 
     timeout = "5s"
     username = "${INFLUXDB_USER}"
-    password = "${INFLUXDB_PASSWORD}"
+    password = "${INFLUXDB_USER_PASSWORD}"
 
 ###############################################################
 #                   PROCESSOR PLUGINS                         #
