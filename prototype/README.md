@@ -12,7 +12,7 @@ are required for all the components.
 
 ### Telegraf
 
-- Adapt the `topics`, `database` in the `telegraf/telegraf.conf` according to your requirements
+- Adapt the `topics`, `database` in the `telegraf/telegraf.toml` according to your requirements
 - Optionally add / remove the `[[processors.regex]]` logic from the `telegraf.conf` file
 
 ### Mosquitto
@@ -32,7 +32,7 @@ are required for all the components.
 2. Encrypting the Passwords for Mosquitto Broker:
 
     ```bash
-    # Assuming you are in the `prototype` directory
+    cd prototype/
     docker run -it --rm -v $(pwd)/mosquitto/config:/mosquitto/config eclipse-mosquitto mosquitto_passwd -U /mosquitto/config/passwd
     ```
 
@@ -42,53 +42,21 @@ are required for all the components.
 
 3. Bring the stack up:
 
-    a. from the root directory:
-
-           USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f prototype/docker-compose.prototype.yml up
-
-    b. from the present `prototype` directory:
-
-            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.prototype.yml up
+        USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.prototype.yml up
     
     add `-d` flag to detach the stack logs
 
-4. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
+## Component Availability behind Reverse-Proxy
 
-    a. Create `admin` user with all privileges
+|   Component  |  Credentials (username:password)  |                         Endpoint                         |
+|:---------:|:-----------------:|:-----------------------------------------------------------------------------------------------------:|
+| `traefik` | `admin:tiguitto`  | `curl -i -u admin:tiguitto http://localhost/dashboard/`<br> Browser: `http://<IP_ADDRESS>/dashboard/` |
+| `grafana` | `admin:tiguitto`  | `curl -i -u admin:tiguitto http://localhost/grafana/api/health`<br> Browser: `http://<IP_ADDRESS>/grafana`       |
+| `influxdb`| `tiguitto:tiguitto` | `curl -i -u tiguitto:tiguitto http://localhost/influxdb/ping` |
+| `mosquitto` | `{sub,pub}client:tiguitto` | Use an MQTT Client here         |
 
-            curl -XPOST 'http://localhost:8086/query' --data-urlencode "q=CREATE USER admin WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES"
-
-    b. Give `telegraf` user all privileges
-
-            curl -XPOST 'http://localhost:8086/query' \
-                -u admin:tiguitto \
-                --data-urlencode "q=CREATE USER telegraf WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES"
-
-    This will allow Telegraf to insert data into the dedicated database
-
-5. Grafana Should be available on http://localhost:3000/login with the following credentials:
-
-        username: admin
-        password: tiguitto
-    
-    You can use the InfluxDB credentials created in Step 4 to create an InfluxDB Datasource in Grafana
-
-### Component Logs
-
-<details>
-- For `telegraf`, `influxdb`, `grafana`, `mosquitto` stdout Logs:
-
-    a. from root directory:
-
-        docker-compose -f prototype/docker-compose.prototype.yml logs -f telegraf
-        # OR
-        docker-compose -f prototype/docker-compose.prototype.yml logs -f influxdb
-        # OR
-        docker-compose -f prototype/docker-compose.prototype.yml logs -f grafana
-        # OR
-        docker-compose -f prototype/docker-compose.prototype.yml logs -f mosquitto
-
-    b. from `prototype` (this) directory:
+## Component Logs
+- For `telegraf`, `influxdb`, `grafana`, `mosquitto`, `traefik` stdout Logs:
 
         docker-compose -f docker-compose.prototype.yml logs -f telegraf
         # OR
@@ -97,27 +65,23 @@ are required for all the components.
         docker-compose -f docker-compose.prototype.yml logs -f grafana
         # OR
         docker-compose -f docker-compose.prototype.yml logs -f mosquitto
+        # OR
+        docker-compose -f docker-compose.prototype.yml logs -f traefik
 
-</details>
-
----
-
-## Ports for Components
+## Component Ports
 
 | Component   | Port  |
 | ----------  | ----- |
-| `influxdb`  | 8086  |
-| `telegraf`  | n/a   |
-| `grafana`   | 3000  |
-| `mosquitto` | 1883 (mqtt), 1884 (ws)  |
-
----
+| `influxdb`  | 8086 (internal)  |
+| `telegraf`  | n/a (internal)  |
+| `grafana`   | 3000 (internal) |
+| `mosquitto` | 1883 (mqtt), 1884 (ws) (internal) |
+| `traefik`   | 80, 1883, 1884 (external) |
 
 ## Component Level Security
 
 ### Mosquitto MQTT Broker
 
-<details>
 The `mosquitto/config/passwd` file has two users in it:
 
 
@@ -128,40 +92,35 @@ The `mosquitto/config/passwd` file has two users in it:
 
 The file needs to be encrypted in order for the Broker to accept it. Passwords in Mosquitto cannot be plain-text.
 
-See Step 1 for Reference
-</details>
+See __Step 2__ to encrypt your Mosquitto Broker Passwords.
 
 ### Telegraf
-<details>
-The configuration file (`telegraf.conf`) will use the following environment variables to write data into
+
+The configuration file (`telegraf.toml`) will use the following environment variables to write data into
 InfluxDB
 
-    INFLUX_USERNAME=telegraf
-    INFLUX_PASSWORD=tiguitto
+    INFLUXDB_USER=tiguitto
+    INFLUXDB_USER_PASSWORD=tiguitto
 
-The data will be written to a database called `edge` (change the name in the `telegraf.conf` accordingly)
+The data will be written to a database called `edge` (`INFLUXDB_DB` in `prototype.env`)
 
 Telegraf will use the following environment variables to subscribe to Mosquitto Broker
 
     TG_MOSQUITTO_USERNAME=subclient
     TG_MOSQUITTO_PASSWORD=tiguitto
-</details>
+
 
 ### InfluxDB
-<details>
-> Since InfluxDB does not provide Environment Variables to setup an `admin` user, one needs to use `curl` to setup privileges
 
-See Step 4 for Reference
-</details>
+- You can control the admin user and password via `INFLUXDB_ADMIN_USER` and `INFLUXDB_ADMIN_PASSWORD` variables in `prototype.env`
+> `INFLUXDB_USER` can _have read and write privileges ONLY if_ `INFLUXDB_DB` is assigned. If there is no database assigned then the `INFLUXDB_USER` will not have any privileges.
+
 
 ### Grafana
-<details>
 Grafana container will use the following environment variables to set up an admin account
 
     GF_ADMIN_USERNAME=admin
     GF_ADMIN_PASSWORD=tiguitto
-
-</details>
 
 
 ## Mosquitto Websocket Client using Paho-MQTT-Python
