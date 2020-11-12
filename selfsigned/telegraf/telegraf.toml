@@ -23,8 +23,8 @@
     skip_database_creation = false
 
     timeout = "5s"
-    username = "${INFLUX_USERNAME}"
-    password = "${INFLUX_PASSWORD}"
+    username = "${INFLUXDB_USER}"
+    password = "${INFLUXDB_USER_PASSWORD}"
     ## Use TLS but skip chain & host verification
     insecure_skip_verify = true
 
