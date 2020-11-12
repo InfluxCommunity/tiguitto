@@ -1,0 +1,25 @@
+[tls]
+    [[tls.certificates]]
+                certFile = "/etc/ssl/certs/domain.crt"
+                keyFile = "/etc/ssl/certs/domain.key"
+                stores = ["default"]
+
+    [tls.stores]
+        [tls.stores.default]
+            [tls.stores.default.defaultCertificate]
+                certFile = "/etc/ssl/certs/domain.crt"
+                keyFile = "/etc/ssl/certs/domain.key"
+
+    [tls.options]
+        [tls.options.mintls12]
+            minVersion = "VersionTLS12"
+
+        [tls.options.mqtts]
+            [tls.options.mqtts.clientAuth]
+                caFiles = ["/etc/ssl/certs/ca.crt"]
+                clientAuthType = "RequireAndVerifyClientCert"
+        
+        [tls.options.mqtt-wss]
+            [tls.options.mqtt-wss.clientAuth]
+                caFiles = ["/etc/ssl/certs/ca.crt"]
+                clientAuthType = "RequireAndVerifyClientCert"
