@@ -65,30 +65,46 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
                 ├── ca.crt
                 ├── ca.key
                 ├── ca.srl
+                ├── domain.crt
+                ├── domain.csr
+                ├── domain.key
+                ├── grafana
+                │   ├── ca.crt
+                │   ├── grafana-server.crt
+                │   ├── grafana-server.csr
+                │   └── grafana-server.key
                 ├── influxdb
                 │   ├── ca.crt
                 │   ├── influx-server.crt
                 │   ├── influx-server.csr
                 │   └── influx-server.key
                 └── mqtt
-                        ├── ca.crt
-                        ├── mqtt-server.crt
-                        ├── mqtt-server.csr
-                        |── mqtt-server.key
-                        ├── mqtt-client.crt
-                        ├── mqtt-client.csr
-                        └── mqtt-client.key
+                    ├── ca.crt
+                    ├── mqtt-client.crt
+                    ├── mqtt-client.csr
+                    ├── mqtt-client.key
+                    ├── mqtt-server.crt
+                    ├── mqtt-server.csr
+                    ├── mqtt-server.key
 
         NOTE: We copy the `ca.crt` in each component directory in order to keep the mount volumes in the compose file simple.
 
 4. Distribute `mqtt-client.crt` and `mqtt-client.key` to the Sensor Nodes that need to publish information when `require_certificates` is set to `true` in Mosquitto Configuration File
 
+5. change the Ownership for the Grafana Server Certificates using:
 
-5. Bring the Stack up:
+    ```bash
+        sudo chown -R 472:472 certs/grafana/
+    ```
+
+6. Bring the Stack up:
 
         USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.selfsigned.yml up
     
     add `-d` flag to detach the stack logs
+
+7. For your MQTT Clients copy the `ca.crt`, `mqtt-client.crt`, and `mqtt-client.key` and add them to your Apps accordingly.
+
 
 ## Component Availability behind Reverse-Proxy
 
@@ -101,10 +117,6 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
     
     NOTE: use the `--insecure` parameter when querying self-signed certificate server
 
-8. Grafana should be available with the following credentials:
-
-        username: admin
-        password: tiguitto
 
 ## Publishing with MQTT Clients
 
@@ -187,3 +199,29 @@ except KeyboardInterrupt as e:
 ```
 
 </details>
+
+# Snapshots
+
+- Initial TLS Information since we are use a self-signed Certificate : `<IP_ADDRESS>/dashboard/`
+
+    ![Self-Signed TLS Warning](../.github/selfsigned/TLS_Warning.png)
+
+  Click on __Accept the Risk and Continue__ and we reroute to `https://<IP_ADDRESS>/dashboard/#/` for the Traefik Dashboard.
+
+  Username and Password for Traefik Dashboard are `admin` & `tiguitto` respectively
+
+- Traefik Dashboard: `https://<IP_ADDRESS>/dashboard/ with credentials:
+
+    ![Traefik Dashboard](../.github/selfsigned/Traefik_Dashboard.png)
+
+- Grafana Dashboard: `https://<IP_ADDRESS>/grafana`
+
+    ![Grafana Dashboard](../.github/selfsigned/Grafana_Dashboard.png)
+
+- MQTT Client (using [MQTT.fx](https://mqttfx.org)) Settings to connect to Broker: `ssl://<IP_address>:8883`
+
+    ![MQTT.fx Broker Connection Settings](../.github/selfsigned/mqtt_broker_settings_1.png)
+
+- MQTT Client SSL/TLS Settings if Certificates are Required by Broker:
+
+    ![MQTT.fx Client SSL Settings](../.github/selfsigned/mqtt_client_ssl_settings.png)
