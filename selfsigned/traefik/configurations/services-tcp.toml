@@ -1,0 +1,11 @@
+[tcp]
+    [tcp.services]
+        [tcp.services.mosquitto]
+            [tcp.services.mosquitto.loadBalancer]
+                [[tcp.services.mosquitto.loadBalancer.servers]]
+                    address = "mosquitto:8883"
+
+        [tcp.services.mosquitto-ws]
+            [tcp.services.mosquitto-ws.loadBalancer]
+                [[tcp.services.mosquitto-ws.loadBalancer.servers]]
+                    address = "mosquitto:8884"

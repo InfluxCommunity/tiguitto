@@ -4,6 +4,7 @@
 #       USAGE: ./generate-certs.sh
 #   DESCRIPTION: Script to generate self-signed certificates for:
 #                   1. Certificate Authority (CA)
+#                       1.1 Domain (localhost)
 #                   2. InfluxDB
 #                   3. Mosquitto MQTT Broker
 #
@@ -18,16 +19,17 @@ CERTSDIR="certs"
 CN=$(hostname -I | awk '{print $1}')
 
 SUBJECT_CA="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=Certificate Authority"
+SUBJECT_DOMAIN="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=DOMAIN/CN=${CN}"
 SUBJECT_MQTT_SERVER="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=MQTTSERVER/CN=${CN}"
 SUBJECT_INFLUXDB="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=INFLUXDB/CN=${CN}"
 SUBJECT_MQTT_CLIENT="/C=DE/ST=Bremen/L=Bremen/O=BIBA/OU=MQTTCLIENT/CN=${CN}"
-# SUBJECT_GRAFANA="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=GRAFANA/CN=${CN}"
+SUBJECT_GRAFANA="/C=DE/ST=Bremen/L=Bremen/O=TIGUITTO/OU=GRAFANA/CN=${CN}"
 
 
 cd $(pwd)/$CERTSDIR
 mkdir mqtt/
 mkdir influxdb/
-# mkdir grafana/ # Do not generate Grafana Certificate for time-being
+mkdir grafana/ # Do not generate Grafana Certificate for time-being
 
 function generate_ca() {
         #===========================================================================
@@ -38,6 +40,24 @@ function generate_ca() {
         echo $SUBJECT_CA
 
         openssl req -new -x509 -days 3650 -subj "$SUBJECT_CA" -keyout ca.key -out ca.crt
+}
+
+
+function generate_domain_cert() {
+        #===========================================================================
+        #       Generating Certificate for Local Domain
+        #===========================================================================
+        echo "Step1.1: Generating Private Key for Local Domain"
+
+        openssl genrsa -out domain.key 2048
+
+        echo "Step 1.2: Generating A Signing Request for Local Domain Cert"
+
+        openssl req -out domain.csr -key domain.key -subj "$SUBJECT_DOMAIN" -new
+
+        echo "Step 1.3: Sending CSR to the CA"
+
+        openssl x509 -req -in domain.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out domain.crt -days 3650
 }
 
 
@@ -113,22 +133,23 @@ function generate_grafana_cert() {
 
 
 generate_ca
+generate_domain_cert
 generate_mqtt_server_cert
 generate_mqtt_client_cert
 generate_influxdb_cert
-# generate_grafana_cert # Do Not Generate Grafana certificate for time-being
+generate_grafana_cert # Do Not Generate Grafana certificate for time-being
 
 echo "Moving Certificates in to dedicated directories"
 
 mv mqtt-server.* mqtt/
 mv mqtt-client.* mqtt/
 mv influx-server.* influxdb/
-# mv grafana-server.* grafana/
+mv grafana-server.* grafana/
 
 echo "Copying the CA Certificate for Mosquitto, InfluxDB, Grafana"
 
 cp ca.crt mqtt/
 cp ca.crt influxdb/
-#cp ca.crt grafana/
+cp ca.crt grafana/
 
 exit 0

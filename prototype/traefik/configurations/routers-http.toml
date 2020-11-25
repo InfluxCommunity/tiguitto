@@ -1,0 +1,20 @@
+[http]
+    [http.routers]
+
+        [http.routers.api-router]
+            rule = "PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+            entryPoints = ["web"]
+            middlewares = ["user-auth"]
+            service = "api@internal"
+
+        [http.routers.grafana-router]
+            rule = "PathPrefix(`/grafana`)"
+            entryPoints = ["web"]
+            middlewares = ["grafana-mw"]
+            service = "grafana"
+        
+        [http.routers.influxdb-router]
+            rule = "PathPrefix(`/influxdb`)"
+            entryPoints = ["web"]
+            middlewares = ["influxdb-mw"]
+            service = "influxdb"

@@ -43,9 +43,10 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
         docker network create iotstack
 
 2. Encrypting the Passwords for Mosquitto Broker:
-
-        # Assuming you are in the `selfsigned` directory
+    ```bash
+        cd selfsigned/
         docker run -it --rm -v $(pwd)/mosquitto/config:/mosquitto/config eclipse-mosquitto mosquitto_passwd -U /mosquitto/config/passwd
+    ```
 
     If there is no response from the command, the passwords are encrypted. You can see the encrypted passwords using:
 
@@ -56,7 +57,7 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
         chmod +x generate-certs.sh
         ./generate-certs.sh
     
-    a. During initial Creation for __CA__, you will be asked to enter __PEM Passphrase__. You can keep it whatever you want, but you will need it everytime you create a new certificate. For simplicity use `tiguitto`
+    a. During initial Creation for __CA__, you will be asked to enter __PEM Passphrase__. You can keep it whatever you want, but you will need it everytime you create a new certificate. For simplicity use __tiguitto__.
 
     b. This should create the following certificates and keys in the `certs` folder:
 
@@ -64,56 +65,58 @@ Feel Free to change the `SUBJECT_*` variables' geographical and organizational v
                 ├── ca.crt
                 ├── ca.key
                 ├── ca.srl
+                ├── domain.crt
+                ├── domain.csr
+                ├── domain.key
+                ├── grafana
+                │   ├── ca.crt
+                │   ├── grafana-server.crt
+                │   ├── grafana-server.csr
+                │   └── grafana-server.key
                 ├── influxdb
                 │   ├── ca.crt
                 │   ├── influx-server.crt
                 │   ├── influx-server.csr
                 │   └── influx-server.key
                 └── mqtt
-                        ├── ca.crt
-                        ├── mqtt-server.crt
-                        ├── mqtt-server.csr
-                        |── mqtt-server.key
-                        ├── mqtt-client.crt
-                        ├── mqtt-client.csr
-                        └── mqtt-client.key
+                    ├── ca.crt
+                    ├── mqtt-client.crt
+                    ├── mqtt-client.csr
+                    ├── mqtt-client.key
+                    ├── mqtt-server.crt
+                    ├── mqtt-server.csr
+                    ├── mqtt-server.key
 
         NOTE: We copy the `ca.crt` in each component directory in order to keep the mount volumes in the compose file simple.
+
 4. Distribute `mqtt-client.crt` and `mqtt-client.key` to the Sensor Nodes that need to publish information when `require_certificates` is set to `true` in Mosquitto Configuration File
 
+5. change the Ownership for the Grafana Server Certificates using:
 
-5. Bring the Stack up:
+    ```bash
+        sudo chown -R 472:472 certs/grafana/
+    ```
 
-    a. from the root directory:
+6. Bring the Stack up:
 
-            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f selfsigned/docker-compose.selfsigned.yml up
-
-    b. from the present `selfsigned` directory:
-
-            USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.selfsigned.yml up
+        USER_ID="$(id -u)" GRP_ID="$(id -g)" docker-compose -f docker-compose.selfsigned.yml up
     
-        add `-d` flag to detach the stack logs
+    add `-d` flag to detach the stack logs
 
-7. Create `admin` user for InfluxDB and give `telegraf` user all privileges. (from the shell, whereever you are):
+7. For your MQTT Clients copy the `ca.crt`, `mqtt-client.crt`, and `mqtt-client.key` and add them to your Apps accordingly.
 
-    a. Create `admin` user with all privileges
 
-            curl -XPOST 'https://localhost:8086/query' --data-urlencode "q=CREATE USER admin WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES" --insecure
+## Component Availability behind Reverse-Proxy
 
-    b. Give `telegraf` user all privileges
-
-            curl -XPOST 'https://localhost:8086/query' \
-                -u admin:tiguitto \
-                --data-urlencode "q=CREATE USER telegraf WITH PASSWORD 'tiguitto' WITH ALL PRIVILEGES" --insecure
-
-    This will allow Telegraf to insert data into the dedicated database.
+|   Component  |  Credentials (username:password)  |                         Endpoint                         |
+|:---------:|:-----------------:|:-----------------------------------------------------------------------------------------------------:|
+| `traefik` | `admin:tiguitto`  | `curl -i --insecure -u admin:tiguitto https://localhost/dashboard/`<br> Browser: `https://<IP_ADDRESS>/dashboard/` |
+| `grafana` | `admin:tiguitto`  | `curl -i --insecure -u admin:tiguitto https://localhost/grafana/api/health`<br> Browser: `https://<IP_ADDRESS>/grafana`       |
+| `influxdb`| `tiguitto:tiguitto` | `curl -i --insecure -u tiguitto:tiguitto https://localhost/influxdb/ping` |
+| `mosquitto` | `{sub,pub}client:tiguitto` | Use an MQTT Client here         |
     
     NOTE: use the `--insecure` parameter when querying self-signed certificate server
 
-8. Grafana should be available on http://localhost:3000/login with the following credentials:
-
-        username: admin
-        password: tiguitto
 
 ## Publishing with MQTT Clients
 
@@ -128,26 +131,8 @@ You will require all devices or Apps that will publish data to the TIGUITTO Brok
 | User | `pubclient`  |
 | TLS  | `v1.2`       |
 | Pass | `tiguitto`   |
-| cert | `ca.crt`     |
+| cert | `ca.crt`, `mqtt-client.crt`, `mqtt-client.key`     |
 
-
-## Grafana Configuration
-Change the values accordingly in the Data Sources Section of Grafana.
-
-[Source](https://devconnected.com/how-to-setup-telegraf-influxdb-and-grafana-on-linux/)
-
-### Data Sources Configuration for InfluxDB
-    
-|  Field   |       Value                |
-|----------|----------------------------| 
-| HTTP_URL |    `https://influxdb:8086` |
-| Auth_Basic_auth | `true`              |
-| Auth_Skip_TLS_Verify | `true`         |
-| Auth_With_Credentials | `true`        |
-| Basic Auth Details | User: `admin`, Password: `tiguitto`|
-| InfluxDB Details_Database | Database: `edge`  |
-| InfluxDB Details_User | `admin` |
-| InfluxDB Details_Password | `tiguitto` |
 
 ## Mosquitto Websocket Client using Paho-MQTT-Python With Certificates
 
@@ -214,3 +199,29 @@ except KeyboardInterrupt as e:
 ```
 
 </details>
+
+# Snapshots
+
+- Initial TLS Information since we are use a self-signed Certificate : `<IP_ADDRESS>/dashboard/`
+
+    ![Self-Signed TLS Warning](../.github/selfsigned/TLS_Warning.png)
+
+  Click on __Accept the Risk and Continue__ and we reroute to `https://<IP_ADDRESS>/dashboard/#/` for the Traefik Dashboard.
+
+  Username and Password for Traefik Dashboard are `admin` & `tiguitto` respectively
+
+- Traefik Dashboard: `https://<IP_ADDRESS>/dashboard/ with credentials:
+
+    ![Traefik Dashboard](../.github/selfsigned/Traefik_Dashboard.png)
+
+- Grafana Dashboard: `https://<IP_ADDRESS>/grafana`
+
+    ![Grafana Dashboard](../.github/selfsigned/Grafana_Dashboard.png)
+
+- MQTT Client (using [MQTT.fx](https://mqttfx.org)) Settings to connect to Broker: `ssl://<IP_address>:8883`
+
+    ![MQTT.fx Broker Connection Settings](../.github/selfsigned/mqtt_broker_settings_1.png)
+
+- MQTT Client SSL/TLS Settings if Certificates are Required by Broker:
+
+    ![MQTT.fx Client SSL Settings](../.github/selfsigned/mqtt_client_ssl_settings.png)
