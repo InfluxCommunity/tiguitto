@@ -23,3 +23,13 @@
             [tls.options.mqtt-wss.clientAuth]
                 caFiles = ["/etc/ssl/certs/ca.crt"]
                 clientAuthType = "RequireAndVerifyClientCert"
+
+        [tls.options.grafana-secure]
+            [tls.options.grafana-secure.clientAuth]
+                caFiles = ["/etc/ssl/certs/ca.crt"]
+                clientAuthType = "VerifyClientCertIfGiven"
+
+        [tls.options.influxdb-secure]
+            [tls.options.influxdb-secure.clientAuth]
+                caFiles = ["/etc/ssl/certs/ca.crt"]
+                clientAuthType = "VerifyClientCertIfGiven"

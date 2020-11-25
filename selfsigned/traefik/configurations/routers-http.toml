@@ -16,6 +16,7 @@
             service = "grafana"
 
             [http.routers.grafana-router.tls]
+                options = ["grafana-secure"]
         
         [http.routers.influxdb-router]
             rule = "PathPrefix(`/influxdb`)"
@@ -24,3 +25,4 @@
             service = "influxdb"
 
             [http.routers.influxdb-router.tls]
+                options = ["influxdb-secure"]
