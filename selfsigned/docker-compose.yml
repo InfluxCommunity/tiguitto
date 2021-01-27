@@ -39,7 +39,6 @@ services:
         container_name: influxdb
         env_file: selfsigned.env
         volumes:
-            - ./certs/influxdb:/etc/ssl/influxdb 
             - influxdb_data:/var/lib/influxdb
         networks: 
             - "iotstack"
@@ -53,7 +52,6 @@ services:
         image: eclipse-mosquitto
         container_name: mosquitto
         volumes:
-            - ./certs/mqtt:/mosquitto/config/certs
             - ./mosquitto/config:/mosquitto/config
             - ./mosquitto/log:/mosquitto/log
             - ./mosquitto/data:/mosquitto/data
@@ -81,8 +79,7 @@ services:
         links: 
             - influxdb
         env_file: selfsigned.env
-        volumes:
-            - ./certs/mqtt:/etc/telegraf 
+        volumes: 
             - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
         networks: 
             - "iotstack"
