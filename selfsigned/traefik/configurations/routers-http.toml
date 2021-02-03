@@ -2,7 +2,7 @@
     [http.routers]
 
         [http.routers.api-router]
-            rule = "Host(`example.com`) && Path(`/dashboard`)"
+            rule = "Host(`demo.iotstack.co`) && PathPrefix(`/dashboard`)"
             entryPoints = ["web-secure"]
             middlewares = ["user-auth"]
             service = "api@internal"
@@ -11,7 +11,7 @@
                 certResolver = "myresolver"
 
         [http.routers.grafana-router]
-            rule = "Host(`demo.iotstack.co`) && Path(`/grafana`)"
+            rule = "Host(`demo.iotstack.co`) && PathPrefix(`/grafana`)"
             entryPoints = ["web-secure"]
             middlewares = ["grafana-mw"]
             service = "grafana"
