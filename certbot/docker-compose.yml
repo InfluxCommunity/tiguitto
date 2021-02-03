@@ -1,0 +1,111 @@
+version: "3"
+
+services:
+  traefik:
+    image: traefik:v2.2
+    container_name: traefik
+
+    restart: always
+    networks:
+      - "iotstack"
+    ports:
+      - "80:80"
+      # HTTPS
+      - "443:443"
+      # MQTT
+      - "8883:1883"
+      - "8884:1884"
+    depends_on:
+      # Let every other service start before traefik
+      - mosquitto
+      - grafana
+      - influxdb
+      - telegraf
+    volumes:
+      # Traefik Static Configuration
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ./traefik/log/access.log:/log/access.log
+      # Traefik Dynamic Configuration
+      - ./traefik/configurations:/etc/traefik/configurations
+      # SSL Certificates
+      - "./letsencrypt:/letsencrypt"
+      # Docker Provider via Socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-router=api-router@file"
+      - "traefik.http.routers.traefik-http-router.service=api@internal"
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    env_file: certbot.env
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      - "iotstack"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.influxdb-router=influxdb-router@file"
+      - "traefik.http.routers.influxdb-router.service=influxdb@file"
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/data:/mosquitto/data
+    user: "${USER_ID}:${GRP_ID}"
+    expose:
+      - 1883
+      - 1884
+    links:
+      - telegraf
+    restart: always
+    networks:
+      - "iotstack"
+    labels:
+      - "traefik.enable=true"
+      # TCP Routers for MQTT and Websockets
+      - "traefik.tcp.routers.mqtt-router=mqtt-router@file"
+      - "traefik.tcp.routers.mqtt-websockets-router=mqtt-websockets-router@file"
+      # TCP Services for MQTT and Websockets
+      - "traefik.tcp.services.mosquitto=mosquitto@file"
+      - "traefik.tcp.services.mosquitto-ws=mosquitto-ws@file"
+
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    links:
+      - influxdb
+    env_file: certbot.env
+    volumes:
+      - ./telegraf/telegraf.toml:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - "iotstack"
+    labels:
+      - "traefik.enable=false"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    env_file: certbot.env
+    user: "472"
+    links:
+      - influxdb
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - "iotstack"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana-router=grafana-router@file"
+      - "traefik.http.routers.grafana-router.service=grafana@file"
+
+volumes:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  iotstack:
+    external: true

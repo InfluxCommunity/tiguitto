@@ -1,0 +1,7 @@
+[http]
+    [http.middlewares]
+        [http.middlewares.user-auth]
+            [http.middlewares.user-auth.basicAuth]
+                # Username:Password -> admin:tiguitto
+                users = ["admin:$apr1$r3puowjd$lXRESWyaLtTa8Qdt6yD.0."]
+

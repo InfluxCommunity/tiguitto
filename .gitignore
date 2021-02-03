@@ -1,2 +1,4 @@
 selfsigned/letsencrypt/acme.json
 selfsigned/traefik/log/access.log
+certbot/letsencrypt/acme.json
+certbot/traefik/log/access.log
