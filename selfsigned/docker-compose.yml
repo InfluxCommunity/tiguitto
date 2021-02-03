@@ -57,8 +57,8 @@ services:
             - ./mosquitto/data:/mosquitto/data
         user: "${USER_ID}:${GRP_ID}"
         expose:
-            - 8883
-            - 8884
+            - 1883
+            - 1884
         links: 
             - telegraf
         restart: always
