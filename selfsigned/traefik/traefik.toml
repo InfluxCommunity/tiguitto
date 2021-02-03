@@ -50,12 +50,18 @@
     [entryPoints.websockets]
         address = ":8884"
 
+[retry]
+
+[docker]
+    endpoint = "unix:///var/run/docker.sock"
+    domain = "my-awesome-app.org"
+    watch = true
+    exposedByDefault = false
+
 [providers]
     [providers.docker]
         endpoint = "unix:///var/run/docker.sock"
         exposedByDefault = false
-        domain = "demo1.iotstack.co"
-        watch = true
         network = "iotstack"
     [providers.file]
         directory = "/etc/traefik/configurations/"
