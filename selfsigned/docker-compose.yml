@@ -13,8 +13,8 @@ services:
       # HTTPS
       - "443:443"
       # MQTT
-      - "8883:8883"
-      - "8884:8884"
+      - "8883:1883"
+      - "8884:1884"
     depends_on:
       # Let every other service start before traefik
       - mosquitto
@@ -57,8 +57,8 @@ services:
       - ./mosquitto/data:/mosquitto/data
     user: "${USER_ID}:${GRP_ID}"
     expose:
-      - 8883
-      - 8884
+      - 1883
+      - 1884
     links:
       - telegraf
     restart: always
