@@ -3,7 +3,7 @@
 
 [global]
     checkNewVersion = false
-    sendAnonymousUsage = true
+    sendAnonymousUsage = false
 
 [api]
     # insecure = true
@@ -47,12 +47,6 @@
 
 [retry]
 
-[docker]
-    endpoint = "unix:///var/run/docker.sock"
-    domain = "demo1.iotstack.co"
-    watch = true
-    exposedByDefault = false
-
 [providers]
     [providers.docker]
         endpoint = "unix:///var/run/docker.sock"
@@ -64,7 +58,9 @@
 
 [certificatesResolvers.myresolver.acme]
   email = "lewandowski@swms.de"
-  storage = "acme.json"
+  storage = "/letsencrypt/acme.json"
+  # caserver = "https://acme-staging-v02.api.letsencrypt.org/directory"
+
   [certificatesResolvers.myresolver.acme.httpChallenge]
     # used during the challenge
     entryPoint = "web"

@@ -2,8 +2,9 @@ version: "3"
 
 services:
   traefik:
-    image: traefik:v2.3
+    image: traefik:v2.2
     container_name: traefik
+
     restart: always
     networks:
       - "iotstack"
@@ -27,7 +28,7 @@ services:
       # Traefik Dynamic Configuration
       - ./traefik/configurations:/etc/traefik/configurations
       # SSL Certificates
-      - /opt/traefik/acme.json:/acme.json
+      - "./letsencrypt:/letsencrypt"
       # Docker Provider via Socket
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -95,7 +96,6 @@ services:
       - influxdb
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./certs/grafana:/etc/ssl/certs
     networks:
       - "iotstack"
     labels:
