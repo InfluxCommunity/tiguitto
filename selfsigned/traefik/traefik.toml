@@ -54,7 +54,7 @@
 
 [docker]
     endpoint = "unix:///var/run/docker.sock"
-    domain = "my-awesome-app.org"
+    domain = "demo1.iotstack.co"
     watch = true
     exposedByDefault = false
 
