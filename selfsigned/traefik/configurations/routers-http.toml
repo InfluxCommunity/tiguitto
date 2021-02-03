@@ -2,21 +2,22 @@
     [http.routers]
 
         [http.routers.api-router]
-            rule = "PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+            rule = "Host(`example.com`) && Path(`/dashboard`)"
             entryPoints = ["web-secure"]
             middlewares = ["user-auth"]
             service = "api@internal"
             
             [http.routers.api-router.tls]
+                certResolver = "myresolver"
 
         [http.routers.grafana-router]
-            rule = "PathPrefix(`/grafana`)"
+            rule = "Host(`demo.iotstack.co`) && Path(`/grafana`)"
             entryPoints = ["web-secure"]
             middlewares = ["grafana-mw"]
             service = "grafana"
 
             [http.routers.grafana-router.tls]
-                options = ["grafana-secure"]
+                certResolver = "myresolver"
         
         [http.routers.influxdb-router]
             rule = "PathPrefix(`/influxdb`)"
@@ -25,4 +26,4 @@
             service = "influxdb"
 
             [http.routers.influxdb-router.tls]
-                options = ["influxdb-secure"]
+                certResolver = "myresolver"
