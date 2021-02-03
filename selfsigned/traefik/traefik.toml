@@ -5,10 +5,6 @@
     checkNewVersion = false
     sendAnonymousUsage = true
 
-[serversTransport]
-    insecureSkipVerify = true
-    rootCAs = ["/etc/ssl/certs/ca.crt"]
-
 [api]
     # insecure = true
     dashboard = true
@@ -62,3 +58,10 @@
     [providers.file]
         directory = "/etc/traefik/configurations/"
         watch = true
+
+[certificatesResolvers.myresolver.acme]
+  email = "lewandowski@swms.de"
+  storage = "acme.json"
+  [certificatesResolvers.myresolver.acme.httpChallenge]
+    # used during the challenge
+    entryPoint = "web"
