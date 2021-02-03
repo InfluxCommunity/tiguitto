@@ -49,6 +49,8 @@
     [providers.docker]
         endpoint = "unix:///var/run/docker.sock"
         exposedByDefault = false
+        domain = "demo1.iotstack.co"
+        watch = true
         network = "iotstack"
     [providers.file]
         directory = "/etc/traefik/configurations/"
