@@ -46,7 +46,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.influxdb-router=influxdb-router@file"
-      - "traefik.http.routers.influxdb-router.middlewares=influxdb-mw@file"
       - "traefik.http.routers.influxdb-router.service=influxdb@file"
 
   mosquitto:
@@ -101,7 +100,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana-router=grafana-router@file"
-      - "traefik.http.routers.grafana-router.middlewares=grafana-mw@file"
       - "traefik.http.routers.grafana-router.service=grafana@file"
 
 volumes:
