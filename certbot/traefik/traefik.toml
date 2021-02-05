@@ -42,8 +42,6 @@
         
     [entryPoints.mqtt]
         address = ":8883"
-    [entryPoints.websockets]
-        address = ":8884"
 
 [retry]
 

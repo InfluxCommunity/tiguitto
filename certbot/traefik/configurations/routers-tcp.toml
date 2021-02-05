@@ -8,10 +8,3 @@
             [tcp.routers.mqtt-router.tls]
                 certResolver = "myresolver"
 
-        [tcp.routers.mqtt-websockets-router]
-            entryPoints = ["websockets"]
-            service = "mosquitto-ws"
-            rule = "HostSNI(`mqtt.demo1.iotstack.co`)"
-
-            [tcp.routers.mqtt-websockets-router.tls]
-		        certResolver = "myresolver"

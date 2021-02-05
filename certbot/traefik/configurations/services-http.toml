@@ -15,3 +15,8 @@
                 [http.services.influxdb.loadBalancer.healthCheck]
                     path = "/ping"
                     interval = "30s"
+
+        [http.services.mosquitto-ws]
+            [http.services.mosquitto-ws.loadBalancer]
+                [[http.services.mosquitto-ws.loadBalancer.server]]
+                    port = "9001"

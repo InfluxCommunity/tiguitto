@@ -25,3 +25,11 @@
 
             [http.routers.influxdb-router.tls]
                 certResolver = "myresolver"
+
+        [http.routers.mqtt-router]
+            rule = "Host(`mqtt.demo1.iotstack.co`)"
+            entryPoints = ["web-secure"]
+            service = "mosquitto-ws"
+
+            [http.routers.mqtt-router.tls]
+                certResolver = "myresolver"
