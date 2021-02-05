@@ -3,17 +3,17 @@
         [tcp.routers.mqtt-router]
             entryPoints = ["mqtt"]
             service = "mosquitto"
-            rule = "HostSNI(`mqtt.demo1.iotstack.co`)"
+            rule = "HostSNI(`*`)"
 
             [tcp.routers.mqtt-router.tls]
-                certResolver = "myresolver"
-		passthrough = true
+                options = "mqtts"
+                passthrough = true
 
         [tcp.routers.mqtt-websockets-router]
             entryPoints = ["websockets"]
             service = "mosquitto-ws"
-            rule = "HostSNI(`mqtt.demo1.iotstack.co`)"
+            rule = "HostSNI(`*`)"
 
             [tcp.routers.mqtt-websockets-router.tls]
-		certResolver = "myresolver"
+                options = ["mqtt-wss"]
                 passthrough = true

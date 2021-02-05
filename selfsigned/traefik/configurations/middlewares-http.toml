@@ -5,3 +5,12 @@
                 # Username:Password -> admin:tiguitto
                 users = ["admin:$apr1$r3puowjd$lXRESWyaLtTa8Qdt6yD.0."]
 
+        [http.middlewares.grafana-mw]
+            [http.middlewares.grafana-mw.stripPrefix]
+                prefixes = ["/grafana"]
+                forceSlash = false
+
+        [http.middlewares.influxdb-mw]
+            [http.middlewares.influxdb-mw.stripPrefix]
+                prefixes = ["/influxdb"]
+                forceSlash = false

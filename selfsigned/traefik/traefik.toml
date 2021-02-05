@@ -3,7 +3,11 @@
 
 [global]
     checkNewVersion = false
-    sendAnonymousUsage = false
+    sendAnonymousUsage = true
+
+[serversTransport]
+    insecureSkipVerify = true
+    rootCAs = ["/etc/ssl/certs/ca.crt"]
 
 [api]
     # insecure = true
@@ -36,6 +40,11 @@
 [entryPoints]
     [entryPoints.web]
         address = ":80"
+        [entryPoints.web.http]
+            [entryPoints.web.http.redirections]
+                [entryPoints.web.http.redirections.entryPoint]
+                    to = "web-secure"
+                    scheme = "https"
 
     [entryPoints.web-secure]
         address = ":443"
@@ -45,8 +54,6 @@
     [entryPoints.websockets]
         address = ":8884"
 
-[retry]
-
 [providers]
     [providers.docker]
         endpoint = "unix:///var/run/docker.sock"
@@ -55,12 +62,3 @@
     [providers.file]
         directory = "/etc/traefik/configurations/"
         watch = true
-
-[certificatesResolvers.myresolver.acme]
-  email = "lewandowski@swms.de"
-  storage = "/letsencrypt/acme.json"
-  # caserver = "https://acme-staging-v02.api.letsencrypt.org/directory"
-
-  [certificatesResolvers.myresolver.acme.httpChallenge]
-    # used during the challenge
-    entryPoint = "web"
