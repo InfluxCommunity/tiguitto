@@ -1,0 +1,64 @@
+# Traefik Static Configuration Reference
+# Link: https://doc.traefik.io/traefik/reference/static-configuration/file/
+
+[global]
+    checkNewVersion = false
+    sendAnonymousUsage = false
+
+[api]
+    # insecure = true
+    dashboard = true
+    debug = true
+
+[metrics]
+    [metrics.influxDB]
+        address = "influxdb:8089"
+        protocol = "udp"
+        pushInterval = "42s"
+        # Same as that of the environment file
+        database = "traefik"
+        username = "admin"
+        password = "tiguitto"
+        addEntryPointsLabels = true
+        addServicesLabels = true
+
+[log]
+    level = "DEBUG"
+
+[accessLog]
+    filePath = "/log/access.log"
+    bufferingSize = 100
+    [accessLog.filters]
+        statusCodes = ["200", "300-302", "400-499"]
+        retryAttempts = true
+        minDuration = 10
+
+[entryPoints]
+    [entryPoints.web]
+        address = ":80"
+
+    [entryPoints.web-secure]
+        address = ":443"
+        
+    [entryPoints.mqtt]
+        address = ":8883"
+
+[retry]
+
+[providers]
+    [providers.docker]
+        endpoint = "unix:///var/run/docker.sock"
+        exposedByDefault = false
+        network = "iotstack"
+    [providers.file]
+        directory = "/etc/traefik/configurations/"
+        watch = true
+
+[certificatesResolvers.myresolver.acme]
+  email = "lewandowski@swms.de"
+  storage = "/letsencrypt/acme.json"
+  # caserver = "https://acme-staging-v02.api.letsencrypt.org/directory"
+
+  [certificatesResolvers.myresolver.acme.httpChallenge]
+    # used during the challenge
+    entryPoint = "web"

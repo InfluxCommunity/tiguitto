@@ -1,0 +1,10 @@
+[tcp]
+    [tcp.routers]
+        [tcp.routers.mqtt-router]
+            entryPoints = ["mqtt"]
+            service = "mosquitto"
+            rule = "HostSNI(`*`)"
+
+            [tcp.routers.mqtt-router.tls]
+                certResolver = "myresolver"
+

@@ -1,0 +1,35 @@
+[http]
+    [http.routers]
+
+        [http.routers.api-router]
+            rule = "Host(`dashboard.demo1.iotstack.co`)"
+            entryPoints = ["web-secure"]
+            middlewares = ["user-auth"]
+            service = "api@internal"
+            
+            [http.routers.api-router.tls]
+                certResolver = "myresolver"
+
+        [http.routers.grafana-router]
+            rule = "Host(`grafana.demo1.iotstack.co`)"
+            entryPoints = ["web-secure"]
+            service = "grafana"
+
+            [http.routers.grafana-router.tls]
+                certResolver = "myresolver"
+        
+        [http.routers.influxdb-router]
+            rule = "Host(`influxdb.demo1.iotstack.co`)"
+            entryPoints = ["web-secure"]
+            service = "influxdb"
+
+            [http.routers.influxdb-router.tls]
+                certResolver = "myresolver"
+
+        [http.routers.mqtt-router]
+            rule = "Host(`mqtt.demo1.iotstack.co`)"
+            entryPoints = ["web-secure"]
+            service = "mosquitto-ws"
+
+            [http.routers.mqtt-router.tls]
+                certResolver = "myresolver"

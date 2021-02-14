@@ -1,0 +1,22 @@
+[http]
+    [http.services]
+        [http.services.grafana]
+            [http.services.grafana.loadBalancer]
+                [[http.services.grafana.loadBalancer.servers]]
+                    url = "http://grafana:3000"
+                [http.services.grafana.loadBalancer.healthCheck]
+                    path = "grafana/api/health"
+                    interval = "30s"
+        
+        [http.services.influxdb]
+            [http.services.influxdb.loadBalancer]
+                [[http.services.influxdb.loadBalancer.servers]]
+                    url = "http://influxdb:8086"
+                [http.services.influxdb.loadBalancer.healthCheck]
+                    path = "/ping"
+                    interval = "30s"
+
+        [http.services.mosquitto-ws]
+            [http.services.mosquitto-ws.loadBalancer]
+                [[http.services.mosquitto-ws.loadBalancer.server]]
+                    port = "9001"

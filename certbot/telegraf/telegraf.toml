@@ -16,15 +16,17 @@
 #                   OUTPUT PLUGINS                          #
 #############################################################
 [[outputs.influxdb]]
-    urls = [ "https://${CB_DOMAIN}:8086" ]
+    urls = [ "http://influxdb:8086" ]
 
     database = "edge"
 
     skip_database_creation = false
 
     timeout = "5s"
-    username = "${INFLUX_USERNAME}"
-    password = "${INFLUX_PASSWORD}"
+    username = "${INFLUXDB_USER}"
+    password = "${INFLUXDB_USER_PASSWORD}"
+    ## Use TLS but skip chain & host verification
+    insecure_skip_verify = true
 
 ###############################################################
 #                   PROCESSOR PLUGINS                         #
@@ -58,8 +60,8 @@
         dest = "location"
 
         [processors.enum.mapping.value_mappings]
-            sensor1 = "kitchen"
-            sensor2 = "livingroom"
+            "sensor1" = "kitchen"
+            "sensor2" = "livingroom"
 
 ##################################################################
 #                   INPUT PLUGINS                                #
@@ -67,7 +69,7 @@
 
 [[inputs.mqtt_consumer]]
 
-    servers = [ "ssl://${CB_DOMAIN}:8883" ]
+    servers = [ "tcp://mosquitto:8883" ]
 
     # Topics to subscribe to:
     topics = [
@@ -86,6 +88,14 @@
 
     username = "${TG_MOSQUITTO_USERNAME}"
     password = "${TG_MOSQUITTO_PASSWORD}"
+
+    ## Use TLS but skip chain & host verification
+    # Use Certificates if `require_certificate true` in `mosquitto.conf` file
+    #tls_ca = "/etc/telegraf/ca.crt"
+    #tls_cert = "/etc/telegraf/mqtt-client.crt"
+    #tls_key = "/etc/telegraf/mqtt-client.key"
+    ## Use TLS but skip chain & host verification
+    #insecure_skip_verify = true
 
     # Incoming MQTT Payload from Sensor nodes is in InfluxDB Line Protocol strings
     data_format = "influx"
