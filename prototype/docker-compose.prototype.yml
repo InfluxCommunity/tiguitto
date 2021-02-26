@@ -31,7 +31,7 @@ services:
             - "traefik.http.routers.api-router=api-router@file"
             - "traefik.http.routers.traefik-http-router.service=api@internal"
     influxdb:
-        image: influxdb
+        image: influxdb:1.8
         container_name: influxdb
         env_file: prototype.env
         volumes: 
@@ -45,7 +45,7 @@ services:
             - "traefik.http.routers.influxdb-router.service=influxdb@file"
 
     mosquitto:
-        image: eclipse-mosquitto
+        image: eclipse-mosquitto:1.6
         container_name: mosquitto
         volumes: 
             - ./mosquitto/config/:/mosquitto/config/
@@ -71,7 +71,7 @@ services:
             - "traefik.tcp.services.mosquitto-ws=mosquitto-ws@file"
     
     telegraf:
-        image: telegraf
+        image: telegraf:1.16
         container_name: telegraf
         links: 
             - influxdb
@@ -84,7 +84,7 @@ services:
             - "traefik.enable=false"
     
     grafana:
-        image: grafana/grafana
+        image: grafana/grafana:7.1.0
         container_name: grafana
         env_file: prototype.env
         user: "472"
