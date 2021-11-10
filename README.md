@@ -1,6 +1,6 @@
 # TIGUITTO
 
-Highly used `Telegraf` + `InfluxDB` + `Grafana` stack with `Mosquitto` MQTT broker. Hence, the name:
+Highly used `Telegraf` + `InfluxDBv1.8` + `Grafana` stack with `Mosquitto` MQTT broker. Hence, the name:
 
 ```
 T   I   G   UITTO
